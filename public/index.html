@@ -274,7 +274,19 @@
 // =============================================================
 // CONFIG
 // =============================================================
-let WORKER_URL = localStorage.getItem('workerUrl') || '';
+function loadStoredUrl() {
+  const raw = localStorage.getItem('workerUrl') || '';
+  try {
+    if (!raw) return '';
+    const u = new URL(raw);
+    if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) throw new Error();
+    return raw;
+  } catch {
+    localStorage.removeItem('workerUrl');
+    return '';
+  }
+}
+let WORKER_URL = loadStoredUrl();
 let alertsEnabled = false;
 let prevSignal = null;
 let prevRSI = null;
@@ -300,6 +312,16 @@ function openSetup() {
 function saveConfig() {
   const val = document.getElementById('worker-url-input').value.trim().replace(/\/$/, '');
   if (!val) return;
+  try {
+    const u = new URL(val);
+    if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) throw new Error();
+  } catch {
+    const inp = document.getElementById('worker-url-input');
+    inp.setCustomValidity('Enter a valid https://… Worker URL (no credentials)');
+    inp.reportValidity();
+    inp.setCustomValidity('');
+    return;
+  }
   WORKER_URL = val;
   localStorage.setItem('workerUrl', WORKER_URL);
   document.getElementById('setup-modal').classList.add('hidden');
@@ -977,7 +999,15 @@ async function refresh() {
     hideLoading();
   } catch (err) {
     hideLoading();
-    showError(err.message);
+    const isUrlError = /credentials|invalid url|failed to fetch/i.test(err.message);
+    if (isUrlError) {
+      localStorage.removeItem('workerUrl');
+      WORKER_URL = '';
+      showError('Worker URL is invalid — please re-enter it below.');
+      openSetup();
+    } else {
+      showError(err.message);
+    }
     console.error(err);
   }
 }
