@@ -1,13 +1,11 @@
 name = "fbtc-worker"
 main = "index.js"
 compatibility_date = "2024-01-15"
+account_id = "f33c613e8bd7869fb5b5b857adddfb2e"
 
-# After creating the KV namespace, replace the id below:
-# Run: npx wrangler kv:namespace create FBTC_CACHE
-# Then copy the id from the output here.
 [[kv_namespaces]]
 binding = "FBTC_CACHE"
-id = "97df5b70cf66431f97641a331a866475"
+id = "255c5483fbaf47278a32b97f433e22e4"
 
 # Set secrets via CLI (never put real keys here):
 #   npx wrangler secret put ALPACA_KEY
